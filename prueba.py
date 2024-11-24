@@ -7,10 +7,8 @@ print('#'*20,"Archivo .txt",'#'*20)
 print(df_txt.info())
 df1 = df_txt[['ApplNo','ProductNo','Form','Strength','ReferenceDrug', 'DrugName']]
 df2 = df_txt[['ActiveIngredient','ReferenceStandard']]
-print('df1')
-print(tabulate(df1.head(5),headers='keys'))
-print('df2')
-print(tabulate(df2.head(5),headers='keys'))
+print('df1');print(tabulate(df1.head(5),headers='keys'))
+print('df2');print(tabulate(df2.head(5),headers='keys'))
 
 
 
@@ -35,19 +33,11 @@ df7 = df_json[['rxnorm']]
 df7.columns = ['rxnorm']
 df8 = df_json[['is_original_packager','id','dosage_form']]
 df8.columns = ['is_original_packager','id','dosage_form']
-print('df1')
-print(tabulate(df1.head(5),headers='keys'))
-print('df2')
-print(tabulate(df2.head(5),headers='keys'))
-print('df3')
-print(tabulate(df3.head(5),headers='keys'))
-print('df4')
-print(tabulate(df4.head(5),headers='keys'))
-print('df5')
-print(tabulate(df5.head(5),headers='keys'))
-print('df6')
-print(tabulate(df6.head(5),headers='keys'))
-print('df7')
-print(tabulate(df7.head(5),headers='keys'))
-print('df8')
-print(tabulate(df8.head(5),headers='keys'))
+print('df1');print(tabulate(df1.head(5),headers='keys'))
+print('df2');print(tabulate(df2.head(5),headers='keys'))
+print('df3');print(tabulate(df3.head(5),headers='keys'))
+print('df4');print(tabulate(df4.head(5),headers='keys'))
+print('df5');print(tabulate(df5.head(5),headers='keys'))
+print('df6');print(tabulate(df6.head(5),headers='keys'))
+print('df7');print(tabulate(df7.head(5),headers='keys'))
+print('df8');print(tabulate(df8.head(5),headers='keys'))
