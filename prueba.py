@@ -2,10 +2,22 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from tabulate import tabulate
 import seaborn as sns
+from IPython import get_ipython
+from IPython.display import display
+import patoolib
+import os
+import re
+
+# Extraer archivo RAR automaticamente
+os.makedirs("carpeta_de_extraccion", exist_ok=True) 
+patoolib.extract_archive("prueba.rar", outdir="carpeta_de_extraccion")
 
 # Leer el archivo JSON en un DataFrame de pandas
-df_json = pd.read_json('prueba\\harmonized.json', lines=True)
+df_json = pd.read_json('carpeta_de_extraccion/prueba/harmonized.json', lines=True) 
+print('#'*20,"Archivo .json",'#'*20)
+print(df_json.info())
 
+# Division de df_json en pequeños df
 df1 = df_json[['spl_product_ndc', 'manufacturer_name', 'application_number', 'brand_name_suffix', 'spl_version','route']]
 df2 = df_json[['generic_name']]
 df3 = df_json[[ 'brand_name', 'upc','spl_set_id', 'product_ndc','original_packager_product_ndc']]
@@ -24,6 +36,7 @@ df6.columns = ['package_ndc','product_type']
 df7.columns = ['rxnorm']
 df8.columns = ['is_original_packager','id','dosage_form']
 
+# Visualizacion de df pequeños
 print('df1');print(tabulate(df1.head(5),headers='keys'))
 print('df2');print(tabulate(df2.head(5),headers='keys'))
 print('df3');print(tabulate(df3.head(5),headers='keys'))
@@ -33,13 +46,20 @@ print('df6');print(tabulate(df6.head(5),headers='keys'))
 print('df7');print(tabulate(df7.head(5),headers='keys'))
 print('df8');print(tabulate(df8.head(5),headers='keys'))
 
-
-def separar_columna_en_columnas(serie):   # Arreglar los puntos y comas para que aparescan mas parecidos
-    df1 = df_json[[serie]]
-    nuevas_columnas = df_json[serie].str.split('; ', expand=True)
-    value_counts = nuevas_columnas.apply(pd.Series.value_counts).sum(axis=1).astype(int)
-    value_counts = value_counts[value_counts.index.notna()]
-    value_counts = value_counts.drop('', errors='ignore')
+# Funciones
+def separar_columna_en_columnas(serie, delimitadores=None):
+    if delimitadores:
+        delimitador_regex = '|'.join(map(re.escape, delimitadores))
+        nuevas_columnas = df_json[serie].str.split(delimitador_regex, expand=True)
+        value_counts = nuevas_columnas.apply(pd.Series.value_counts).sum(axis=1).astype(int)
+        value_counts = value_counts[value_counts.index.notna()]
+        value_counts = value_counts.drop('', errors='ignore')
+        for i,j in value_counts.items():
+            print(i,j)
+    else:
+        value_counts = df_json[serie].value_counts().astype(int)
+        for i,j in value_counts.items():
+            print(i,j)
     return value_counts
 
 def grafica_top_10(serie, titulo): 
@@ -56,23 +76,47 @@ def grafica_top_10(serie, titulo):
     plt.tight_layout()
     plt.show()
 
+# Pruebas de separacion y graficas
+
+print('manufacturer_name', '#'*60)
 print(grafica_top_10(separar_columna_en_columnas('manufacturer_name'),'manufacturer_name'))
-print(grafica_top_10(separar_columna_en_columnas('route'), 'route'))
-print(grafica_top_10(separar_columna_en_columnas('generic_name'),'generic_name'))
-print(grafica_top_10(separar_columna_en_columnas('brand_name'),'brand_name'))
-print(grafica_top_10(separar_columna_en_columnas('substance_name'),'substance_name'))
+
+print('route', '#'*60)
+delimitadores = ['; ']
+print(grafica_top_10(separar_columna_en_columnas('route',delimitadores), 'route'))
+
+print('generic_name', '#'*60)
+delimitadores = [', ', ' - ', ' and ', 'and ', ',', ' AND ','AND ' , '-']
+print(grafica_top_10(separar_columna_en_columnas('generic_name',delimitadores),'generic_name'))
+
+print('brand_name', '#'*60)
+delimitadores = [' and ', ' AND ', ' - ']
+print(grafica_top_10(separar_columna_en_columnas('brand_name',delimitadores),'brand_name'))
+
+print('substance_name', '#'*60)
+delimitadores = ['; ']
+print(grafica_top_10(separar_columna_en_columnas('substance_name',delimitadores),'substance_name'))
+
+print('dosage_form', '#'*60)
+delimitadores = [', ','/','/ ',' / ']
+print(grafica_top_10(separar_columna_en_columnas('dosage_form',delimitadores),'dosage_form'))
 
 
 
 '''
-# Lo que se tiene ya revisado
-df1; manufacturer_name, route
-df2; generic_name, separarlos y ver cuales son los mas comunes.
+# Ya revisado (df en los que funcionana bien las graficas , y no hace falta modificarlos)
 
-# Por revisar
-df3; brand_name, ver si se repiten
-df4; substance_name, principal activo ,separar las sustancias y ver cuales son las mas usadas
+df1; route
+df8, dosage_form
+
+# Por revisar (df en los que NO funcionana bien las graficas , y hace falta modificarlos)
+
+df1; manufacturer_name,   limpiar bien                     ','.'LLc'INC'Inc'Todo en mayusculas'()'numeros'& por and' '
+df2; generic_name,        Separar bien, limpiar bien,      ', 'Todo en mayusculas'    
+df3; brand_name,          Separar bien, limpiar bien,      'Todo en mayusculas' '
+df4; substance_name,      Separar bien, limpiar bien,      'numeros'.'
 '''
+
 
 ''' ## Ideas pendientes
 
