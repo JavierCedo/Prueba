@@ -14,39 +14,26 @@ patoolib.extract_archive("prueba.rar", outdir="carpeta_de_extraccion")
 
 # Leer el archivo JSON en un DataFrame de pandas
 df_json = pd.read_json('carpeta_de_extraccion/prueba/harmonized.json', lines=True) 
-print('#'*20,"Archivo .json",'#'*20)
-print(df_json.info())
 
-# Division de df_json en pequeños df
-df1 = df_json[['spl_product_ndc', 'manufacturer_name', 'application_number', 'brand_name_suffix', 'spl_version','route']]
-df2 = df_json[['generic_name']]
-df3 = df_json[[ 'brand_name', 'upc','spl_set_id', 'product_ndc','original_packager_product_ndc']]
-df4 = df_json[['substance_name']]
-df5 = df_json[['unii_indexing']]
-df6 = df_json[['package_ndc','product_type']]
-df7 = df_json[['rxnorm']]
-df8 = df_json[['is_original_packager','id','dosage_form']]
 
-df1.columns = ['spl_product_ndc', 'manufacturer_name', 'application_number', 'brand_name_suffix', 'spl_version','route']
-df2.columns = ['generic_name']
-df3.columns = [ 'brand_name', 'upc','spl_set_id', 'product_ndc','original_packager_product_ndc']
-df4.columns = ['substance_name']
-df5.columns = ['unii_indexing']
-df6.columns = ['package_ndc','product_type']
-df7.columns = ['rxnorm']
-df8.columns = ['is_original_packager','id','dosage_form']
-
-# Visualizacion de df pequeños
-print('df1');print(tabulate(df1.head(5),headers='keys'))
-print('df2');print(tabulate(df2.head(5),headers='keys'))
-print('df3');print(tabulate(df3.head(5),headers='keys'))
-print('df4');print(tabulate(df4.head(5),headers='keys'))
-print('df5');print(tabulate(df5.head(5),headers='keys'))
-print('df6');print(tabulate(df6.head(5),headers='keys'))
-print('df7');print(tabulate(df7.head(5),headers='keys'))
-print('df8');print(tabulate(df8.head(5),headers='keys'))
+#################### Graficas y analicis de datos ####################
 
 # Funciones
+
+def transformar_texto(serie): 
+    df_json[serie] = df_json[serie].str.upper().str.replace(r'[.,;:]', '', regex=True).str.replace(r' INC ', '', regex=True).str.replace(r' INC', '', regex=True)
+    return df_json[serie]
+
+# Asi se tiene que buscar la funcion    transformar_texto
+transformar_texto('manufacturer_name')
+transformar_texto('generic_name')               #Arreglar
+transformar_texto('manufacturer_name')
+transformar_texto('brand_name')                 #Arreglar
+transformar_texto('substance_name')             #Arreglar
+transformar_texto('dosage_form')
+
+
+
 def separar_columna_en_columnas(serie, delimitadores=None):
     if delimitadores:
         delimitador_regex = '|'.join(map(re.escape, delimitadores))
@@ -54,13 +41,13 @@ def separar_columna_en_columnas(serie, delimitadores=None):
         value_counts = nuevas_columnas.apply(pd.Series.value_counts).sum(axis=1).astype(int)
         value_counts = value_counts[value_counts.index.notna()]
         value_counts = value_counts.drop('', errors='ignore')
-        for i,j in value_counts.items():
+        for i, j in value_counts.items():
             print(i,j)
     else:
         value_counts = df_json[serie].value_counts().astype(int)
-        for i,j in value_counts.items():
+        for i, j in value_counts.items():
             print(i,j)
-    return value_counts
+    return value_counts.head(50)
 
 def grafica_top_10(serie, titulo): 
     top_10 = serie.nlargest(10) 
@@ -76,10 +63,11 @@ def grafica_top_10(serie, titulo):
     plt.tight_layout()
     plt.show()
 
-# Pruebas de separacion y graficas
 
+
+## Pruebas de separacion y graficas
 print('manufacturer_name', '#'*60)
-print(grafica_top_10(separar_columna_en_columnas('manufacturer_name'),'manufacturer_name'))
+print(grafica_top_10(separar_columna_en_columnas('manufacturer_name'),'Nombre de la grafica'))
 
 print('route', '#'*60)
 delimitadores = ['; ']
@@ -102,20 +90,6 @@ delimitadores = [', ','/','/ ',' / ']
 print(grafica_top_10(separar_columna_en_columnas('dosage_form',delimitadores),'dosage_form'))
 
 
-
-'''
-# Ya revisado (df en los que funcionana bien las graficas , y no hace falta modificarlos)
-
-df1; route
-df8, dosage_form
-
-# Por revisar (df en los que NO funcionana bien las graficas , y hace falta modificarlos)
-
-df1; manufacturer_name,   limpiar bien                     ','.'LLc'INC'Inc'Todo en mayusculas'()'numeros'& por and' '
-df2; generic_name,        Separar bien, limpiar bien,      ', 'Todo en mayusculas'    
-df3; brand_name,          Separar bien, limpiar bien,      'Todo en mayusculas' '
-df4; substance_name,      Separar bien, limpiar bien,      'numeros'.'
-'''
 
 
 ''' ## Ideas pendientes
